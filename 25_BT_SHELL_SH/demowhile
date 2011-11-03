@@ -1,0 +1,11 @@
+#! /bin/bash
+echo "Chuong trinh demo cach su dung lenh while"
+echo "Nhap mot so n > 0"
+read n
+count=0
+echo "Cac so tu nhien tu 1 den n"
+while [ $count -lt $n ];do
+	count=$(($count+1))
+	echo "$count"
+done
+exit 0

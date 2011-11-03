@@ -1,0 +1,11 @@
+#! /bin/bash
+echo "Chuong trinh demo cach su dung lenh for"
+echo "Nhap mot so chuoi cac so, moi so cach nhau ki tu trang"
+read n
+count=0
+echo "Liet ke cac so vua nhap"
+for i in $n; do
+	count=$(($count+1))
+	echo "$count, $i"
+done
+exit 0
