@@ -1,0 +1,12 @@
+How to play Puzzle Game.
++ Click mouse on digit cell than next to dot cell
++ The game is finished as all digit cells are in
+order of 12345678 clock-wise or anti-clockwise, with the dot cell in the center
+and the 1-cell at the left-top corner
++You can have your choice of game when you win the game
++You can save the game and load it later on from disk
++You can change color of the game's board
++Enjoy yourself !
+
+Puzzle Game
+Copyright @2011 Kem 2Tech
