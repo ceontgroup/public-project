@@ -1,0 +1,60 @@
+# Project: oop
+# Makefile created by Dev-C++ 4.9.9.2
+
+CPP  = g++.exe -D__DEBUG__
+CC   = gcc.exe -D__DEBUG__
+WINDRES = windres.exe
+RES  = 
+OBJ  = main.o binary.o complex.o date.o matrix.o mystring.o node.o polynomial.o set.o stack.o vector.o $(RES)
+LINKOBJ  = main.o binary.o complex.o date.o matrix.o mystring.o node.o polynomial.o set.o stack.o vector.o $(RES)
+LIBS =  -L"C:/Dev-Cpp/lib"  -g3 -fmessage-length=0 
+INCS =  -I"C:/Dev-Cpp/include" 
+CXXINCS =  -I"C:/Dev-Cpp/lib/gcc/mingw32/3.4.2/include"  -I"C:/Dev-Cpp/include/c++/3.4.2/backward"  -I"C:/Dev-Cpp/include/c++/3.4.2/mingw32"  -I"C:/Dev-Cpp/include/c++/3.4.2"  -I"C:/Dev-Cpp/include" 
+BIN  = oop.exe
+CXXFLAGS = $(CXXINCS)   -fexceptions -g3 -fmessage-length=0
+CFLAGS = $(INCS)   -fexceptions -g3 -fmessage-length=0
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before oop.exe all-after
+
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o "oop.exe" $(LIBS)
+
+main.o: main.cpp
+	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)
+
+binary.o: binary.cpp
+	$(CPP) -c binary.cpp -o binary.o $(CXXFLAGS)
+
+complex.o: complex.cpp
+	$(CPP) -c complex.cpp -o complex.o $(CXXFLAGS)
+
+date.o: date.cpp
+	$(CPP) -c date.cpp -o date.o $(CXXFLAGS)
+
+matrix.o: matrix.cpp
+	$(CPP) -c matrix.cpp -o matrix.o $(CXXFLAGS)
+
+mystring.o: mystring.cpp
+	$(CPP) -c mystring.cpp -o mystring.o $(CXXFLAGS)
+
+node.o: node.cpp
+	$(CPP) -c node.cpp -o node.o $(CXXFLAGS)
+
+polynomial.o: polynomial.cpp
+	$(CPP) -c polynomial.cpp -o polynomial.o $(CXXFLAGS)
+
+set.o: set.cpp
+	$(CPP) -c set.cpp -o set.o $(CXXFLAGS)
+
+stack.o: stack.cpp
+	$(CPP) -c stack.cpp -o stack.o $(CXXFLAGS)
+
+vector.o: vector.cpp
+	$(CPP) -c vector.cpp -o vector.o $(CXXFLAGS)
