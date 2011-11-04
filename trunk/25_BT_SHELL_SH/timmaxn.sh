@@ -5,18 +5,16 @@ then
 	echo "Khong co so nao duoc nhap"
 else
 	max=$1
-	echo $#
-	while [ $# -eq 0 ]
+	while [ $# -ne 0 ]
 	do
-		$ds="$ds $1"
+		ds="$1 $ds"
 		shift
 	done
-	echo $ds
 	for i in $ds
 	do
-		if [ $max -lt $i ]
+		if [ $max -le $i ]
 		then
-			$max=$i
+			max=$i
 		fi
 	done
 	echo "Gia tri lon nhat la: $max"
