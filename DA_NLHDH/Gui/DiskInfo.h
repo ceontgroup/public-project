@@ -1,9 +1,12 @@
+
 #ifndef Disk_Info_h_
 #define Disk_Info_h_
+
 #include <vector>
 #include <string>
 using std::vector;
 using std::string;
+
 struct LogicalPartitionInfo
 {
     string rootPathName, volumeName, fileSystemName;
@@ -29,9 +32,7 @@ private:
     char* getString (const char * str, int pos, char * buf);    
     void DestroyListLogicalPartitions();
     void DestroyListHardisks();
-public:
-    void ListAllLogicalPartitions();
-    void ListAllHardisks();
+public:    
     int ReadHardisksInfo();
     int ReadLogicalPartitionsInfo();
     void DestroyAll();
@@ -40,5 +41,6 @@ public:
 	DiskInfo();
 	virtual ~DiskInfo();
 };
+
 
 #endif
