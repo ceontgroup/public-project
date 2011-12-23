@@ -1,89 +1,17 @@
+#include "stdafx.h"
 #include <Windows.h>
 #include <iostream>
 #include "DiskInfo.h"
 using namespace std;
-
 #define  MAX_IDE_DRIVES  16
 #define IOCTL_DISK_GET_DRIVE_GEOMETRY_EX CTL_CODE(IOCTL_DISK_BASE, 0x0028, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+DiskInfo diskInfo;
 
 DiskInfo::DiskInfo(void)
-{	    	
-}
-
-void DiskInfo::ListAllLogicalPartitions()
-{
-    cout<<"*****************LOGICAL DISK INFO**********************"<<endl;
-    for (unsigned int i = 0; i < listLogicalPartitionInfo.size(); i++)
-    {        
-
-        cout
-            <<"Volume: "<<listLogicalPartitionInfo[i]->volumeName<<endl
-            <<"Volume serial number: "<<listLogicalPartitionInfo[i]->volumeSerialNumber<<endl
-            <<"File System: "<<listLogicalPartitionInfo[i]->fileSystemName<<endl
-            <<"Path: "<<listLogicalPartitionInfo[i]->rootPathName<<endl            			          
-			<<"Size: "<<listLogicalPartitionInfo[i]->size / 1024 / 1024<<" MB"<<endl            			          
-            <<"Sector per cluster: "<<listLogicalPartitionInfo[i]->sectorsPerCluster<<endl
-            <<"Number of free clusters: "<<listLogicalPartitionInfo[i]->numberOfFreeClusters<<endl
-            <<"Total number of clusters: "<<listLogicalPartitionInfo[i]->totalNumberOfClusters<<endl
-            ;        
-        switch (listLogicalPartitionInfo[i]->type)
-        {
-        case DRIVE_NO_ROOT_DIR:
-            cout<<"Driver Type: "<<"DRIVE_NO_ROOT_DIR"<<endl;
-            break;
-        case DRIVE_CDROM:
-            cout<<"Driver Type: "<<"DRIVE_CDROM"<<endl;
-            break;
-        case DRIVE_FIXED:
-            cout<<"Driver Type: "<<"DRIVE_FIXED"<<endl;
-            break;
-        case DRIVE_RAMDISK:
-            cout<<"Driver Type: "<<"DRIVE_RAMDISK"<<endl;
-            break;
-        case DRIVE_REMOTE:
-            cout<<"Driver Type: "<<"DRIVE_REMOTE"<<endl;
-            break;
-        case DRIVE_REMOVABLE:
-            cout<<"Driver Type: "<<"DRIVE_REMOVABLE"<<endl;
-            break;
-        case DRIVE_UNKNOWN:
-            cout<<"Driver Type: "<<"DRIVE_UNKNOWN"<<endl;
-            break;
-        }        
-        if ( i < listLogicalPartitionInfo.size() - 1)
-        cout<<"-------------------------&$$$&--------------------------"<<endl;
-    }
-    cout<<"***************END LOGICAL DISK INFO********************"<<endl;
-}
-
-void DiskInfo::ListAllHardisks()
-{
-    cout<<"*********************DISK INFO**************************"<<endl;
-    for (unsigned int drive = 0; drive < listHardiskInfo.size(); drive++)
-    {
-            cout
-            <<"Disk Info for drive "<< drive <<" : "<<endl
-            <<"Vendor Id: "<<listHardiskInfo[drive]->vendorId<<endl
-            <<"Product Id: "<<listHardiskInfo[drive]->productId<<endl            
-            <<"Serial number: "<<listHardiskInfo[drive]->serialNumber<<endl
-            <<"Disk size: "<<listHardiskInfo[drive]->diskSize / 1024 / 1024<<" MB"<<endl
-            <<"Byte per sector: "<<listHardiskInfo[drive]->bytePerSector<<endl
-            <<"Cylinders: "<<listHardiskInfo[drive]->cylinders<<endl
-            <<"Sector per track: "<<listHardiskInfo[drive]->sectorsPerTrack<<endl
-            <<"Track per cylinder: "<<listHardiskInfo[drive]->tracksPerCylinder<<endl
-            <<"Driver type: ";        
-			switch(listHardiskInfo[drive]->driverType)
-			{
-				case 0: cout<<"Unknown"<<endl; break;
-				case 11: cout<<"Removable media other than floppy"<<endl; break;
-				case 12: cout<<"Fixed hard disk media"<<endl; break;
-				default: cout<<"Floppy or other"<<endl;
-			}
-            if (drive < listHardiskInfo.size() - 1)
-                cout<<"------------------------&$$$&------------------------"<<endl;
-    }
-    cout<<"******************END DISK INFO*************************"<<endl;
+{	    
+	this->ReadLogicalPartitionsInfo();
+	this->ReadHardisksInfo();
 }
 
 int DiskInfo::ReadHardisksInfo ()
@@ -95,9 +23,12 @@ int DiskInfo::ReadHardisksInfo ()
 	{
 		HANDLE hPhysicalDrive = 0;                
 		char driveName [256];
-		sprintf_s(driveName, "\\\\.\\PhysicalDrive%d", drive);
+		sprintf_s(driveName, "\\\\.\\PhysicalDrive%d", drive);		
 		//Google xem CreateFile       
-		hPhysicalDrive = CreateFile (driveName, 0,
+		WCHAR name[256];
+		MultiByteToWideChar( 0,0, driveName, 255, name, 256);
+			
+		hPhysicalDrive = CreateFile ((LPCWSTR)name, 0,
 			FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 			OPEN_EXISTING, 0, NULL);		
 
@@ -175,9 +106,14 @@ int DiskInfo::ReadLogicalPartitionsInfo()
     this->DestroyListLogicalPartitions();
     const int lenght = 255;
     char buffer[lenght + 1];
+	WCHAR names[256];	
     //Lay danh sach cac o dia logical
-    ::GetLogicalDriveStrings(lenght, buffer);
-    char* s = buffer;
+    ::GetLogicalDriveStrings(lenght, names);	
+    //Convert WCHAR* to char*
+	for (int i = 0; i < 256; i++){
+		buffer[i] = names[i];
+	}
+	char *s = buffer;
     //Khoi tao danh sach cac o dia logical
     while (*s)
     {
@@ -187,11 +123,11 @@ int DiskInfo::ReadLogicalPartitionsInfo()
         s += strlen(s) + 1;
     }    		
     //Lay thong tin chi tiet cua moi o dia logical
-    char VolumeNameBuffer[256], FileSystemBuffer[256];
+    WCHAR VolumeNameBuffer[256], FileSystemBuffer[256];
     for (unsigned int i = 0; i < listLogicalPartitionInfo.size(); i++)
     {        
-        memset( VolumeNameBuffer, 0, 256);
-        memset( FileSystemBuffer, 0, 256);
+        memset( VolumeNameBuffer, 0, 256*sizeof(WCHAR));
+        memset( FileSystemBuffer, 0, 256*sizeof(WCHAR));		
 		unsigned long bytesPerSector = 0;
 		unsigned long sectorsPerCluster = 0;
 		unsigned long numberOfFreeClusters = 0;
@@ -200,12 +136,14 @@ int DiskInfo::ReadLogicalPartitionsInfo()
 		unsigned long maximumComponentLength = 0;
 		unsigned long fileSystemFlags = 0;
 		int driverType;
-		const char *rootPath = listLogicalPartitionInfo[i]->rootPathName.data();
-		
-		driverType = ::GetDriveType(rootPath);        
+
+		WCHAR rootPath[5];
+		MultiByteToWideChar( 0,0, listLogicalPartitionInfo[i]->rootPathName.data(), 5, rootPath, 5);
+				
+		driverType = ::GetDriveType((LPCWSTR)rootPath);        
 		//Google xem GetDiskFreeSpace
         ::GetDiskFreeSpace(
-            rootPath, 
+            (LPCWSTR)rootPath, 
             &sectorsPerCluster, 
             &bytesPerSector, 
             &numberOfFreeClusters, 
@@ -213,23 +151,28 @@ int DiskInfo::ReadLogicalPartitionsInfo()
             );
             //Google xem VolumeInfomation
         ::GetVolumeInformation(
-            rootPath,
-            VolumeNameBuffer,
+            (LPCWSTR)rootPath,
+            (LPWSTR)VolumeNameBuffer,
             256,
             &volumeSerialNumber,
             &maximumComponentLength,
             &fileSystemFlags,
-            FileSystemBuffer,
+            (LPWSTR)FileSystemBuffer,
             256                
             );		
-		
+		//Convert WCHAR * to char *
+		char volumName[256], fileSystem[256];
+		for(int i = 0; i < 256; i++){
+			volumName[i] = VolumeNameBuffer[i];
+			fileSystem[i] = FileSystemBuffer[i];
+		}
 		listLogicalPartitionInfo[i]->type = driverType;
 		listLogicalPartitionInfo[i]->numberOfFreeClusters = numberOfFreeClusters;
 		listLogicalPartitionInfo[i]->sectorsPerCluster = sectorsPerCluster;
 		listLogicalPartitionInfo[i]->totalNumberOfClusters = totalNumberOfClusters;
 		listLogicalPartitionInfo[i]->volumeSerialNumber = volumeSerialNumber;
-        listLogicalPartitionInfo[i]->volumeName = string(VolumeNameBuffer);
-        listLogicalPartitionInfo[i]->fileSystemName = string(FileSystemBuffer);    
+        listLogicalPartitionInfo[i]->volumeName = string(volumName);
+        listLogicalPartitionInfo[i]->fileSystemName = string(fileSystem);    
 		listLogicalPartitionInfo[i]->size = bytesPerSector * sectorsPerCluster * (long long) totalNumberOfClusters;				
 		
     }
@@ -316,7 +259,7 @@ DiskInfo::~DiskInfo()
 
 ListHardiskInfo DiskInfo::getHDisks()
 {
-	return this->listHardiskInfo;
+	return this->listHardiskInfo;	
 }
 
 ListLogicalPartitionInfo DiskInfo::getPartitions()
